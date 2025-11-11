@@ -6,6 +6,12 @@ import BookingItem from "./_components/booking-item";
 import { prisma } from "@/lib/prisma";
 import BarberShopItem from "./_components/barbershop-item";
 import Footer from "./_components/footer";
+import {
+  PageSectionTitle,
+  PageContainer,
+  PageSection,
+  PageSectionScroller,
+} from "./_components/ui/page";
 
 export default async function Home() {
   const recommendedBarbershops = await prisma.barbershop.findMany({
@@ -22,7 +28,7 @@ export default async function Home() {
   return (
     <main>
       <Header />
-      <div className="space-y-4 p-5">
+      <PageContainer>
         <SearchInput />
         <Image
           src={banner}
@@ -30,32 +36,32 @@ export default async function Home() {
           sizes="100vw"
           className="h-auto w-full"
         />
-        <h2 className="text-foreground text-xs font-semibold uppercase">
-          Agendamentos
-        </h2>
-        <BookingItem
-          serviceName="Corte de Cabelo"
-          barberShopName="Léo cortes"
-          barberShopImageUrl="https://utfs.io/f/c97a2dc9-cf62-468b-a851-bfd2bdde775f-16p.png"
-          date={new Date()}
-        />
-        <h2 className="text-foreground text-xs font-semibold uppercase">
-          Recomendados
-        </h2>
-        <div className="flex gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-          {recommendedBarbershops.map((barbershop) => (
-            <BarberShopItem key={barbershop.id} barbershop={barbershop} />
-          ))}
-        </div>
-        <h2 className="text-foreground text-xs font-semibold uppercase">
-          Populares
-        </h2>
-        <div className="flex gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-          {popularBarbershops.map((barbershop) => (
-            <BarberShopItem key={barbershop.id} barbershop={barbershop} />
-          ))}
-        </div>
-      </div>
+        <PageSection>
+          <PageSectionTitle>Agendamentos</PageSectionTitle>
+          <BookingItem
+            serviceName="Corte de Cabelo"
+            barberShopName="Léo cortes"
+            barberShopImageUrl="https://utfs.io/f/c97a2dc9-cf62-468b-a851-bfd2bdde775f-16p.png"
+            date={new Date()}
+          />
+        </PageSection>
+        <PageSection>
+          <PageSectionTitle>Recomendados</PageSectionTitle>
+          <PageSectionScroller>
+            {recommendedBarbershops.map((barbershop) => (
+              <BarberShopItem key={barbershop.id} barbershop={barbershop} />
+            ))}
+          </PageSectionScroller>
+        </PageSection>
+        <PageSection>
+          <PageSectionTitle>Populares</PageSectionTitle>
+          <PageSectionScroller>
+            {popularBarbershops.map((barbershop) => (
+              <BarberShopItem key={barbershop.id} barbershop={barbershop} />
+            ))}
+          </PageSectionScroller>
+        </PageSection>
+      </PageContainer>
       <Footer />
     </main>
   );
