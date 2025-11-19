@@ -155,7 +155,7 @@ const SidebarMenu = ({ open, onOpenChange }: SidebarMenuProps) => {
                 onClick={handleLogin}
               >
                 <LogInIcon className="size-5" />
-                Fazer Login
+                Login
               </Button>
               <div className="space-y-2">
                 <Button
