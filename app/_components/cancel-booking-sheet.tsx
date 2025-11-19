@@ -126,7 +126,11 @@ export function CancelBookingSheet({
             variant={isFinished ? "secondary" : "default"}
             className="w-fit"
           >
-            {isFinished ? "Finalizado" : "Confirmado"}
+            {booking.cancelled
+              ? "Cancelado"
+              : booking.date <= now
+                ? "Finalizado"
+                : "Confirmado"}
           </Badge>
 
           {/* Service and Date Info Card */}

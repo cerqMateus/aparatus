@@ -25,6 +25,12 @@ const BookingItem = ({
   const isFinished = cancelled || date <= now;
   const isClickable = !isFinished && onClick;
 
+  const getBadgeLabel = () => {
+    if (cancelled) return "Cancelado";
+    if (date <= now) return "Finalizado";
+    return "Confirmado";
+  };
+
   return (
     <Card
       className={`flex w-full min-w-full flex-row items-center justify-between p-0 ${
@@ -35,7 +41,7 @@ const BookingItem = ({
       {/* ESQUERDA */}
       <div className="flex flex-1 flex-col gap-4 p-4">
         <Badge variant={isFinished ? "secondary" : "confirmed"}>
-          {isFinished ? "Finalizado" : "Confirmado"}
+          {getBadgeLabel()}
         </Badge>
         <div className="flex flex-col gap-2">
           <p className="font-bold">{serviceName}</p>
