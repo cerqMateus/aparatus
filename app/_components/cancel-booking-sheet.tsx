@@ -11,6 +11,16 @@ import { Button } from "@/app/_components/ui/button";
 import { Card } from "@/app/_components/ui/card";
 import { Avatar, AvatarImage } from "@/app/_components/ui/avatar";
 import { Badge } from "@/app/_components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/_components/ui/alert-dialog";
 import ContactItem from "./contact-item";
 import {
   Booking,
@@ -24,6 +34,7 @@ import { cancelBooking } from "../_actions/cancel-booking";
 import { toast } from "sonner";
 import Image from "next/image";
 import { MapPinIcon } from "lucide-react";
+import { useState } from "react";
 
 interface CancelBookingSheetProps {
   booking: Booking & {
@@ -45,16 +56,22 @@ export function CancelBookingSheet({
   onOpenChange,
 }: CancelBookingSheetProps) {
   const { executeAsync, isPending } = useAction(cancelBooking);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
   const now = new Date();
   const isFinished = booking.cancelled || booking.date <= now;
 
-  const handleCancel = async () => {
+  const handleCancelClick = () => {
+    setShowAlertDialog(true);
+  };
+
+  const handleConfirmCancel = async () => {
     const result = await executeAsync({
       bookingId: booking.id,
     });
 
     if (result?.data) {
       toast.success("Reserva cancelada com sucesso!");
+      setShowAlertDialog(false);
       onOpenChange(false);
     } else if (result?.serverError) {
       toast.error(result.serverError);
@@ -171,18 +188,40 @@ export function CancelBookingSheet({
                 Voltar
               </Button>
               <Button
-                onClick={handleCancel}
+                onClick={handleCancelClick}
                 disabled={isPending}
                 variant="destructive"
                 size="sm"
                 className="w-32 rounded-full"
               >
-                {isPending ? "Cancelando..." : "Cancelar Reserva"}
+                Cancelar Reserva
               </Button>
             </div>
           </SheetFooter>
         )}
       </SheetContent>
+
+      <AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar cancelamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar esta reserva? Esta ação não pode
+              ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não, voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancel}
+              disabled={isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? "Cancelando..." : "Sim, cancelar reserva"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
