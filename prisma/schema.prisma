@@ -36,6 +36,8 @@ model BarbershopService {
 
 model Booking {
   id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
   serviceId    String
   barbershopId String
   date         DateTime  @db.Timestamptz
@@ -53,6 +55,7 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+  bookings      Booking[]
 
   @@unique([email])
   @@map("user")

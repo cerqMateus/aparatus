@@ -14,6 +14,9 @@ import { Separator } from "@/app/_components/ui/separator";
 import { BarbershopService, Barbershop } from "../generated/prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useAction } from "next-safe-action/hooks";
+import { createBooking } from "../_actions/create-booking";
+import { toast } from "sonner";
 
 interface BookingSheetProps {
   service: BarbershopService;
@@ -59,6 +62,7 @@ export function BookingSheet({
   const [selectedTime, setSelectedTime] = useState<string | undefined>(
     undefined,
   );
+  const { executeAsync, isPending } = useAction(createBooking);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -69,24 +73,33 @@ export function BookingSheet({
     setSelectedTime(time);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedDate || !selectedTime) return;
 
-    // TODO: Implement booking confirmation logic
-    console.log({
-      service: service.name,
-      barbershop: barbershop.name,
-      date: selectedDate,
-      time: selectedTime,
+    // Combine date and time
+    const [hours, minutes] = selectedTime.split(":");
+    const bookingDate = new Date(selectedDate);
+    bookingDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    const result = await executeAsync({
+      serviceId: service.id,
+      date: bookingDate,
     });
 
-    // Reset and close
-    setSelectedDate(undefined);
-    setSelectedTime(undefined);
-    onOpenChange(false);
+    if (result?.data) {
+      toast.success("Reserva criada com sucesso!");
+      // Reset and close
+      setSelectedDate(undefined);
+      setSelectedTime(undefined);
+      onOpenChange(false);
+    } else if (result?.serverError) {
+      toast.error(result.serverError);
+    } else {
+      toast.error("Erro ao criar reserva. Tente novamente.");
+    }
   };
 
-  const isConfirmDisabled = !selectedDate || !selectedTime;
+  const isConfirmDisabled = !selectedDate || !selectedTime || isPending;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -172,7 +185,7 @@ export function BookingSheet({
             disabled={isConfirmDisabled}
             className="w-full"
           >
-            Confirmar
+            {isPending ? "Confirmando..." : "Confirmar"}
           </Button>
         </SheetFooter>
       </SheetContent>

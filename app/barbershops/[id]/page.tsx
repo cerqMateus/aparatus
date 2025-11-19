@@ -9,9 +9,9 @@ import {
   PageSection,
   PageSectionTitle,
 } from "@/app/_components/ui/page";
-import ServiceItem from "../../_components/service-item";
 import ContactItem from "../../_components/contact-item";
 import { ArrowLeft } from "lucide-react";
+import { ServiceItem } from "@/app/_components/service-item";
 
 const BarbershopPage = async (props: PageProps<"/barbershops/[id]">) => {
   const { id } = await props.params;
