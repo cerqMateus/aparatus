@@ -7,6 +7,7 @@ interface BookingItemProps {
   barberShopName: string;
   barberShopImageUrl: string;
   date: Date;
+  cancelled?: boolean;
 }
 
 const BookingItem = ({
@@ -14,12 +15,18 @@ const BookingItem = ({
   barberShopName,
   barberShopImageUrl,
   date,
+  cancelled = false,
 }: BookingItemProps) => {
+  const now = new Date();
+  const isFinished = cancelled || date <= now;
+
   return (
     <Card className="flex w-full min-w-full flex-row items-center justify-between p-0">
       {/* ESQUERDA */}
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <Badge>Confirmado</Badge>
+        <Badge variant={isFinished ? "secondary" : "default"}>
+          {isFinished ? "Finalizado" : "Confirmado"}
+        </Badge>
         <div className="flex flex-col gap-2">
           <p className="font-bold">{serviceName}</p>
           <div className="flex items-center gap-2.5">
