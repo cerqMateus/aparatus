@@ -58,7 +58,7 @@ const SidebarMenu = ({ open, onOpenChange }: SidebarMenuProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="p w-72">
+      <SheetContent side="right" className="p w-96">
         {session ? (
           <>
             {/* Menu Title */}
