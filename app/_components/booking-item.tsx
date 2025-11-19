@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import { Avatar, AvatarImage } from "./ui/avatar";
@@ -8,6 +10,7 @@ interface BookingItemProps {
   barberShopImageUrl: string;
   date: Date;
   cancelled?: boolean;
+  onClick?: () => void;
 }
 
 const BookingItem = ({
@@ -16,12 +19,19 @@ const BookingItem = ({
   barberShopImageUrl,
   date,
   cancelled = false,
+  onClick,
 }: BookingItemProps) => {
   const now = new Date();
   const isFinished = cancelled || date <= now;
+  const isClickable = !isFinished && onClick;
 
   return (
-    <Card className="flex w-full min-w-full flex-row items-center justify-between p-0">
+    <Card
+      className={`flex w-full min-w-full flex-row items-center justify-between p-0 ${
+        isClickable ? "cursor-pointer transition-all hover:brightness-95" : ""
+      }`}
+      onClick={isClickable ? onClick : undefined}
+    >
       {/* ESQUERDA */}
       <div className="flex flex-1 flex-col gap-4 p-4">
         <Badge variant={isFinished ? "secondary" : "default"}>
