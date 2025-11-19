@@ -34,7 +34,7 @@ const BookingItem = ({
     >
       {/* ESQUERDA */}
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <Badge variant={isFinished ? "secondary" : "default"}>
+        <Badge variant={isFinished ? "secondary" : "confirmed"}>
           {isFinished ? "Finalizado" : "Confirmado"}
         </Badge>
         <div className="flex flex-col gap-2">
