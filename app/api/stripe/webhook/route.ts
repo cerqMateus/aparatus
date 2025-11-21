@@ -24,12 +24,25 @@ export const POST = async (req: Request) => {
         if (!date || !serviceId || !barbershopId || !userId) {
             return NextResponse.error();
         }
+
+        // Retrieve session with expanded payment_intent to get charge ID
+        const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+            expand: ['payment_intent']
+        });
+
+        // Extract charge ID from the expanded payment_intent
+        const paymentIntent = expandedSession.payment_intent as Stripe.PaymentIntent;
+        const stripeChargeId = typeof paymentIntent?.latest_charge === 'string'
+            ? paymentIntent.latest_charge
+            : paymentIntent?.latest_charge?.id;
+
         await prisma.booking.create({
             data: {
                 barbershopId,
                 serviceId,
                 userId,
-                date
+                date,
+                stripeChargeId: stripeChargeId || null
             },
         });
     }
