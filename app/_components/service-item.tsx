@@ -19,6 +19,8 @@ import { createBooking } from "../_actions/create-booking";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { getAvailableTimeSlots } from "../_actions/get-date-available-time-slots";
+import { createBookingCheckoutSession } from "../_actions/create-booking-checkout-session";
+import { loadStripe } from "@stripe/stripe-js";
 
 interface ServiceItemProps {
   service: BarbershopService & {
@@ -26,31 +28,12 @@ interface ServiceItemProps {
   };
 }
 
-const TIME_SLOTS = [
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-];
-
 export function ServiceItem({ service }: ServiceItemProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
+  const { executeAsync: executeCreateBookingCheckoutSession } = useAction(
+    createBookingCheckoutSession,
+  );
   const { executeAsync, isPending } = useAction(createBooking);
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
   const { data: availableTimeSlots } = useQuery({
@@ -87,7 +70,10 @@ export function ServiceItem({ service }: ServiceItemProps) {
   today.setHours(0, 0, 0, 0);
 
   const handleConfirm = async () => {
-    // 10:00
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      toast.error("Erro ao criar checkout session");
+      return;
+    }
     if (!selectedTime || !selectedDate) {
       return;
     }
@@ -96,21 +82,45 @@ export function ServiceItem({ service }: ServiceItemProps) {
     const minutes = timeSplitted[1];
     const date = new Date(selectedDate);
     date.setHours(Number(hours), Number(minutes));
-
-    const result = await executeAsync({
+    const checkoutSessionResult = await executeCreateBookingCheckoutSession({
       serviceId: service.id,
       date,
     });
-    if (result.serverError || result.validationErrors) {
-      toast.error(result.validationErrors?._errors?.[0]);
+    if (
+      checkoutSessionResult.serverError ||
+      checkoutSessionResult.validationErrors
+    ) {
+      toast.error(checkoutSessionResult.validationErrors?._errors?.[0]);
       return;
     }
-    toast.success("Agendamento criado com sucesso!");
-    setSelectedDate(undefined);
-    setSelectedTime(undefined);
-    setSheetIsOpen(false);
-  };
+    const stripe = await loadStripe(
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+    );
+    if (!stripe || !checkoutSessionResult.data?.id) {
+      toast.error("Erro ao carregar Stripe");
+      return;
+    }
+    await stripe.redirectToCheckout({
+      sessionId: checkoutSessionResult.data.id,
+    });
+    // // 10:00
+    // if (!selectedTime || !selectedDate) {
+    //   return;
+    // }
 
+    // const result = await executeAsync({
+    //   serviceId: service.id,
+    //   date,
+    // });
+    // if (result.serverError || result.validationErrors) {
+    //   toast.error(result.validationErrors?._errors?.[0]);
+    //   return;
+    // }
+    // toast.success("Agendamento criado com sucesso!");
+    // setSelectedDate(undefined);
+    // setSelectedTime(undefined);
+    // setSheetIsOpen(false);
+  };
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
       <div className="border-border bg-card flex items-center justify-center gap-3 rounded-2xl border border-solid p-3">
