@@ -26,7 +26,7 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage } = useChat({
+  const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
@@ -71,16 +71,20 @@ export default function ChatPage() {
 
       {/* Messages Container */}
       <div className="flex-1 space-y-4 overflow-y-auto py-6 [&::-webkit-scrollbar]:hidden">
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const content = message.parts
             .map((part) => (part.type === "text" ? part.text : ""))
             .join("");
+
+          const isLastMessage = index === messages.length - 1;
+          const isStreaming = isLastMessage && status === "streaming";
 
           return (
             <ChatMessage
               key={message.id}
               role={message.role as "user" | "assistant"}
               content={content}
+              isStreaming={isStreaming}
             />
           );
         })}
