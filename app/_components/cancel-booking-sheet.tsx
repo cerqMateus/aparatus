@@ -26,7 +26,7 @@ import {
   Booking,
   BarbershopService,
   Barbershop,
-} from "../generated/prisma/client";
+} from "@prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAction } from "next-safe-action/hooks";

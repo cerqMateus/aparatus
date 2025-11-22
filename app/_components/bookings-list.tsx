@@ -7,7 +7,7 @@ import {
   Booking,
   BarbershopService,
   Barbershop,
-} from "../generated/prisma/client";
+} from "@prisma/client";
 
 interface BookingsListProps {
   bookings: (Booking & {

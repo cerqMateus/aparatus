@@ -11,7 +11,7 @@ import {
 } from "@/app/_components/ui/sheet";
 import { Button } from "@/app/_components/ui/button";
 import { Separator } from "@/app/_components/ui/separator";
-import { BarbershopService, Barbershop } from "../generated/prisma/client";
+import { BarbershopService, Barbershop } from "@prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAction } from "next-safe-action/hooks";
