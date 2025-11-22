@@ -3,7 +3,7 @@ import { google } from "@ai-sdk/google";
 import z from "zod";
 import { prisma } from "@/lib/prisma";
 import { getAvailableTimeSlots } from '@/app/_actions/get-date-available-time-slots';
-import { createBooking } from "@/app/_actions/create-booking";
+import { createBookingCheckoutSession } from "@/app/_actions/create-booking-checkout-session";
 
 export const POST = async (request: Request) => {
     const { messages } = await request.json();
@@ -25,7 +25,7 @@ export const POST = async (request: Request) => {
     - Fornecer informações sobre serviços e preços
 
     Fluxo de atendimento:
-        
+
     CENÁRIO 1 - Usuário menciona data/horário na primeira mensagem (ex: "quero um corte pra hoje", "preciso cortar o cabelo amanhã", "quero marcar para sexta"):
     1. Use a ferramenta searchBarbershops para buscar barbearias
     2. IMEDIATAMENTE após receber as barbearias, use a ferramenta getAvailableTimeSlotsForBarbershop para CADA barbearia retornada, passando a data mencionada pelo usuário
@@ -54,14 +54,16 @@ export const POST = async (request: Request) => {
     - Preço
 
     Criação da reserva:
-    - Após o usuário confirmar explicitamente a escolha (ex: "confirmo", "pode agendar", "quero esse horário"), use a ferramenta createBooking
+    - Após o usuário confirmar explicitamente a escolha (ex: "confirmo", "pode agendar", "quero esse horário"), use a ferramenta createBookingCheckoutSession
     - Parâmetros necessários:
       * serviceId: ID do serviço escolhido
       * date: Data e horário no formato ISO (YYYY-MM-DDTHH:mm:ss) - exemplo: "2025-11-05T10:00:00"
-    - Se a criação for bem-sucedida (success: true), informe ao usuário que a reserva foi confirmada com sucesso
-    - Se houver erro (success: false), explique o erro ao usuário:
-      * Se o erro for "User must be logged in", informe que é necessário fazer login para criar uma reserva
+    - Se a criação for bem-sucedida, você receberá um sessionId do Stripe
+    - Informe ao usuário APENAS: "Perfeito! Redirecionando você para o pagamento..." e inclua no final da mensagem o código especial: [REDIRECT_TO_CHECKOUT:sessionId_aqui]
+    - Se houver erro, explique o erro ao usuário:
+      * Se o erro for "Unauthorized", informe que é necessário fazer login para criar uma reserva
       * Para outros erros, informe que houve um problema e peça para tentar novamente
+    - A reserva só será confirmada após o pagamento ser aprovado
 
     Importante:
     - NUNCA mostre informações técnicas ao usuário (barbershopId, serviceId, formatos ISO de data, etc.)
@@ -149,9 +151,9 @@ export const POST = async (request: Request) => {
                     };
                 },
             }),
-            createBooking: tool({
+            createBookingCheckoutSession: tool({
                 description:
-                    "Cria um agendamento para um serviço em uma data específica.",
+                    "Cria uma sessão de checkout do Stripe para pagamento do agendamento.",
                 inputSchema: z.object({
                     serviceId: z.string().describe("ID do serviço"),
                     date: z
@@ -160,20 +162,22 @@ export const POST = async (request: Request) => {
                 }),
                 execute: async ({ serviceId, date }) => {
                     const parsedDate = new Date(date);
-                    const result = await createBooking({
+                    const result = await createBookingCheckoutSession({
                         serviceId,
                         date: parsedDate,
                     });
-                    if (result.serverError || result.validationErrors) {
+                    if (result?.serverError || result?.validationErrors) {
                         return {
                             error:
                                 result.validationErrors?._errors?.[0] ||
-                                "Erro ao criar agendamento",
+                                result.serverError ||
+                                "Erro ao criar sessão de pagamento",
                         };
                     }
                     return {
                         success: true,
-                        message: "Agendamento criado com sucesso",
+                        sessionId: result?.data?.id,
+                        message: "Sessão de pagamento criada com sucesso",
                     };
                 },
             }),

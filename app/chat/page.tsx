@@ -9,6 +9,8 @@ import { MicIcon, SendIcon, ChevronLeftIcon } from "lucide-react";
 import { ChatMessage } from "./_components/chat-message";
 import Image from "next/image";
 import Link from "next/link";
+import { loadStripe } from "@stripe/stripe-js";
+import { toast } from "sonner";
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -39,6 +41,43 @@ export default function ChatPage() {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  // Detectar redirecionamento para checkout
+  useEffect(() => {
+    const checkForCheckoutRedirect = async () => {
+      if (messages.length === 0) return;
+
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role !== "assistant") return;
+
+      const content = lastMessage.parts
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join("");
+
+      const checkoutMatch = content.match(/\[REDIRECT_TO_CHECKOUT:([^\]]+)\]/);
+      if (checkoutMatch) {
+        const sessionId = checkoutMatch[1];
+
+        if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+          toast.error("Erro ao redirecionar para pagamento");
+          return;
+        }
+
+        const stripe = await loadStripe(
+          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        );
+
+        if (!stripe) {
+          toast.error("Erro ao carregar Stripe");
+          return;
+        }
+
+        await stripe.redirectToCheckout({ sessionId });
+      }
+    };
+
+    checkForCheckoutRedirect();
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,6 +115,11 @@ export default function ChatPage() {
             .map((part) => (part.type === "text" ? part.text : ""))
             .join("");
 
+          // Remover o código de redirecionamento da mensagem exibida
+          const displayContent = content
+            .replace(/\[REDIRECT_TO_CHECKOUT:[^\]]+\]/, "")
+            .trim();
+
           const isLastMessage = index === messages.length - 1;
           const isStreaming = isLastMessage && status === "streaming";
 
@@ -83,7 +127,7 @@ export default function ChatPage() {
             <ChatMessage
               key={message.id}
               role={message.role as "user" | "assistant"}
-              content={content}
+              content={displayContent}
               isStreaming={isStreaming}
             />
           );
