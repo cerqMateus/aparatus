@@ -25,7 +25,7 @@ export const POST = async (request: Request) => {
     - Fornecer informações sobre serviços e preços
 
     Fluxo de atendimento:
-
+        
     CENÁRIO 1 - Usuário menciona data/horário na primeira mensagem (ex: "quero um corte pra hoje", "preciso cortar o cabelo amanhã", "quero marcar para sexta"):
     1. Use a ferramenta searchBarbershops para buscar barbearias
     2. IMEDIATAMENTE após receber as barbearias, use a ferramenta getAvailableTimeSlotsForBarbershop para CADA barbearia retornada, passando a data mencionada pelo usuário
