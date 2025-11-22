@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "sonner";
+import { env } from "@/lib/env";
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -59,14 +60,12 @@ export default function ChatPage() {
       if (checkoutMatch) {
         const sessionId = checkoutMatch[1];
 
-        if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+        if (!env.stripe.publishableKey) {
           toast.error("Erro ao redirecionar para pagamento");
           return;
         }
 
-        const stripe = await loadStripe(
-          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-        );
+        const stripe = await loadStripe(env.stripe.publishableKey);
 
         if (!stripe) {
           toast.error("Erro ao carregar Stripe");

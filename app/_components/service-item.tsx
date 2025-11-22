@@ -21,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAvailableTimeSlots } from "../_actions/get-date-available-time-slots";
 import { createBookingCheckoutSession } from "../_actions/create-booking-checkout-session";
 import { loadStripe } from "@stripe/stripe-js";
+import { env } from "@/lib/env";
 
 interface ServiceItemProps {
   service: BarbershopService & {
@@ -70,7 +71,7 @@ export function ServiceItem({ service }: ServiceItemProps) {
   today.setHours(0, 0, 0, 0);
 
   const handleConfirm = async () => {
-    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    if (!env.stripe.publishableKey) {
       toast.error("Erro ao criar checkout session");
       return;
     }
@@ -93,9 +94,7 @@ export function ServiceItem({ service }: ServiceItemProps) {
       toast.error(checkoutSessionResult.validationErrors?._errors?.[0]);
       return;
     }
-    const stripe = await loadStripe(
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-    );
+    const stripe = await loadStripe(env.stripe.publishableKey);
     if (!stripe || !checkoutSessionResult.data?.id) {
       toast.error("Erro ao carregar Stripe");
       return;
