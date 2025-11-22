@@ -3,11 +3,7 @@
 import { useState } from "react";
 import BookingItem from "./booking-item";
 import { CancelBookingSheet } from "./cancel-booking-sheet";
-import {
-  Booking,
-  BarbershopService,
-  Barbershop,
-} from "@prisma/client";
+import { Booking, BarbershopService, Barbershop } from "@prisma/client";
 
 interface BookingsListProps {
   bookings: (Booking & {

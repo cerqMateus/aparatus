@@ -22,11 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/app/_components/ui/alert-dialog";
 import ContactItem from "./contact-item";
-import {
-  Booking,
-  BarbershopService,
-  Barbershop,
-} from "@prisma/client";
+import { Booking, BarbershopService, Barbershop } from "@prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAction } from "next-safe-action/hooks";
