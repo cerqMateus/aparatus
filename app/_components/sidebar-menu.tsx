@@ -35,9 +35,14 @@ const SidebarMenu = ({ open, onOpenChange }: SidebarMenuProps) => {
   }, []);
 
   const handleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-    });
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   const handleLogout = async () => {
