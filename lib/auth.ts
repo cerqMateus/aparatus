@@ -4,17 +4,10 @@ import { prisma } from './prisma';
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
-    secret: process.env.BETTER_AUTH_SECRET,
-    rateLimit: {
-        enabled: false, // Desabilita rate limiting em desenvolvimento
-    },
-    advanced: {
-        useSecureCookies: process.env.NODE_ENV === 'production',
-    },
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || '',
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
         }
     }
 });
