@@ -4,6 +4,11 @@ import { prisma } from './prisma';
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
+    baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+    trustedOrigins: [
+        'http://localhost:3000',
+        process.env.BETTER_AUTH_URL || ''
+    ].filter(Boolean),
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || '',
