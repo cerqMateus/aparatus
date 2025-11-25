@@ -12,8 +12,35 @@ import {
   PageSection,
   PageSectionScroller,
 } from "./_components/ui/page";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function Home() {
+  // Buscar sessão do usuário
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // Buscar o agendamento finalizado mais recente do usuário
+  let recentBooking = null;
+  if (session?.user) {
+    recentBooking = await prisma.booking.findFirst({
+      where: {
+        userId: session.user.id,
+        date: {
+          lte: new Date(), // Data menor ou igual a agora (finalizados)
+        },
+      },
+      orderBy: {
+        date: "desc", // Mais recente primeiro
+      },
+      include: {
+        service: true,
+        barbershop: true,
+      },
+    });
+  }
+
   const recommendedBarbershops = await prisma.barbershop.findMany({
     orderBy: {
       name: "asc",
@@ -38,12 +65,19 @@ export default async function Home() {
         />
         <PageSection>
           <PageSectionTitle>Agendamentos</PageSectionTitle>
-          <BookingItem
-            serviceName="Corte de Cabelo"
-            barberShopName="Léo cortes"
-            barberShopImageUrl="https://utfs.io/f/c97a2dc9-cf62-468b-a851-bfd2bdde775f-16p.png"
-            date={new Date()}
-          />
+          {recentBooking ? (
+            <BookingItem
+              serviceName={recentBooking.service.name}
+              barberShopName={recentBooking.barbershop.name}
+              barberShopImageUrl={recentBooking.barbershop.imageUrl}
+              date={recentBooking.date}
+              cancelled={recentBooking.cancelled ?? false}
+            />
+          ) : (
+            <p className="text-sm text-gray-400">
+              Você ainda não tem agendamentos
+            </p>
+          )}
         </PageSection>
         <PageSection>
           <PageSectionTitle>Recomendados</PageSectionTitle>
