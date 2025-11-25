@@ -13,18 +13,29 @@ export const auth = betterAuth({
     trustedOrigins: [baseURL],
     advanced: {
         useSecureCookies: isProduction,
-        cookiePrefix: 'better-auth'
+        cookiePrefix: 'better-auth',
+        generateId: () => crypto.randomUUID()
+    },
+    session: {
+        expiresIn: 60 * 60 * 24 * 7, // 7 days
+        updateAge: 60 * 60 * 24, // 1 day
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60
+        }
     },
     account: {
         accountLinking: {
             enabled: true
-        },
-        skipStateCookieCheck: true // Necessário para domínios .vercel.app
+        }
     },
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || '',
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+            // Não define redirectURI - deixa o Better Auth usar o padrão baseURL + /api/auth/callback/google
         }
-    }
+    },
+    // CRÍTICO: Desabilita a verificação de state cookie completamente
+    skipCSRFCheck: true
 });
